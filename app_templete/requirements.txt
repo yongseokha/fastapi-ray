@@ -1,0 +1,4 @@
+fastapi
+uvicorn
+ray[default]
+requests
