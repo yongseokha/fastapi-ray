@@ -53,3 +53,18 @@ def save_job_yaml_to_file(req: RayJobCreateRequest) -> str:
 
     file_path.write_text(yaml_str, encoding="utf-8")
     return str(file_path)
+
+
+def build_job_delete_yaml(job_name: str) -> str:
+    """
+    RayJob 삭제용 YAML 생성
+    """
+    data = {
+        "apiVersion": "ray.io/v1",
+        "kind": "RayJob",
+        "metadata": {
+            "name": job_name,
+            "namespace": "default"
+        }
+    }
+    return yaml.dump(data, sort_keys=False)

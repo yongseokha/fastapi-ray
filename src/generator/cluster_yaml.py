@@ -1,11 +1,13 @@
 import yaml
+from pathlib import Path
 from src.scheme.cluster.request import ClusterCreateRequest, ClusterDeleteRequest
+from src.config import YAML_OUTPUT_DIR
+
 
 def build_cluster_yaml(req: ClusterCreateRequest) -> str:
     """
     사용자 요청 기반으로 RayCluster CRD YAML 문자열 생성
     """
-
     data = {
         "apiVersion": "ray.io/v1",
         "kind": "RayCluster",
@@ -47,15 +49,8 @@ def build_cluster_yaml(req: ClusterCreateRequest) -> str:
         }
     }
 
-    # YAML 포맷 문자열로 반환
     return yaml.dump(data, sort_keys=False)
 
-def build_cluster_delete_command(req: ClusterDeleteRequest) -> str:
-    """
-    주어진 클러스터 이름으로 kubectl delete 명령 생성
-    실제로는 kubectl apply --yaml 처럼, 향후 이 명령 실행 또는 API 전송으로 확장 가능
-    """
-    return f"kubectl delete raycluster {req.cluster_name} -n default"
 
 def build_cluster_delete_yaml(req: ClusterDeleteRequest) -> str:
     """
@@ -72,3 +67,31 @@ def build_cluster_delete_yaml(req: ClusterDeleteRequest) -> str:
     }
 
     return yaml.dump(data, sort_keys=False)
+
+
+def build_cluster_delete_command(req: ClusterDeleteRequest) -> str:
+    """
+    kubectl delete 명령어 형태의 CLI 문자열 생성
+    실제 YAML 삭제 대신 수동 명령어 출력용 (옵션 기능)
+    """
+    return f"kubectl delete raycluster {req.cluster_name} -n default"
+
+
+def save_cluster_yaml_to_file(req: ClusterCreateRequest) -> str:
+    """
+    생성된 RayCluster YAML 파일을 저장하고 파일 경로 반환
+    """
+    yaml_str = build_cluster_yaml(req)
+    file_path = Path(YAML_OUTPUT_DIR) / f"{req.cluster_name}.yaml"
+    file_path.write_text(yaml_str, encoding="utf-8")
+    return str(file_path)
+
+
+def save_cluster_delete_yaml_to_file(req: ClusterDeleteRequest) -> str:
+    """
+    삭제용 RayCluster YAML 파일을 저장하고 파일 경로 반환
+    """
+    yaml_str = build_cluster_delete_yaml(req)
+    file_path = Path(YAML_OUTPUT_DIR) / f"{req.cluster_name}-delete.yaml"
+    file_path.write_text(yaml_str, encoding="utf-8")
+    return str(file_path)
